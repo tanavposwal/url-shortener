@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        Home
+    </div>
+    <div class="center2">
+        <form class="form" method="post" action="/make">
+            <input class="input" type="url" placeholder="username" name="urll" required>
+            <input class="submit" type="submit" value="SHORTEN">
+        </form>
+        <hr>
+        <ul class="list">
+            <% urls.forEach((url, index) => { %>
+                <li><p><%= index+1 %>.</p><p><%= url.url %></p><a href=<%= url.hash %>><%= url.hash %></a></li>
+            <% }); %>
+        </ul>
+    </div>
+</body>
+</html>

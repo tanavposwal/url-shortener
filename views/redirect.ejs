@@ -1,0 +1,32 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>redirect</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<script>
+    let remainingSec = 5;
+    
+    window.setInterval(() => {
+        if (remainingSec >= 0) {
+            document.getElementById("sec").innerText = "Your link will be ready in " + remainingSec + " seconds."
+            remainingSec -= 1
+        } else {
+            document.getElementById("but").innerHTML = `<a href='<%= url %>'>GO TO LINK</a>`
+        }
+    }, 1000)
+</script>
+<body>
+    <div class="header">
+        <p id="sec"></p>
+    </div>
+    <div id="ad" class="ad">
+        <img src="https://t3.ftcdn.net/jpg/00/66/57/00/360_F_66570044_uOKC8lOpv8PxHWYBBeFmu1iKD3IGCLhw.jpg" alt="your ad here" width="500" height="500">
+    </div>
+    <div class="but" id="but">
+        
+    </div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+[
+  {
+    "username": "raman@gmail.com",
+    "password": "123456",
+    "shortUrls": [
+      { "url": "https://facebook.com", "hash": "1cn84Az" },
+      { "url": "https://github.com", "hash": "sffX39Z" }
+    ]
+  }
+]
