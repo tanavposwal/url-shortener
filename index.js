@@ -77,6 +77,9 @@ app.get('/signup', (req, res) => {
 // all set
 app.get('/', authenticateJwt, (req, res) => {
     const user = USERS.find(u => u.username === req.user.username);
+    if (!user.shortUrls) {
+        user.shortUrls = []
+    }
     res.render('home', { urls: user.shortUrls });
 })
 
@@ -95,6 +98,14 @@ app.post('/login', (req, res) => {
     } else {
         res.status(403).json({ message: 'Invalid username or password' });
     }
+});
+
+app.get('/logout', (req, res) => {
+    res.cookie('token', '', {
+        maxAge: 86400000,
+        httpOnly: true,
+    });
+    res.redirect('/signup')
 });
 
 // all set
