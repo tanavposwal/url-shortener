@@ -61,7 +61,7 @@ app.get("/redirect/:slug", async (req, res) => {
     },
   });
 
-  await client.set(`slug:${slug}`, toUrl?.long_url);
+  await client.set(`slug:${slug}`, toUrl?.long_url, { EX: 43200 });
 
   res.redirect(toUrl?.long_url as string);
 });
