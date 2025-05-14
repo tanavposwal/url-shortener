@@ -1,20 +1,34 @@
 {
-  "name": "url-shortner",
+  "name": "url-shortener",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -b",
+    "start": "node dist/index.js",
+    "dev": "npm run build && npm run start"
   },
-  "author": "tanavposwal",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tanavposwal/url-shortener.git"
+  },
+  "keywords": [],
+  "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tanavposwal/url-shortener/issues"
+  },
+  "homepage": "https://github.com/tanavposwal/url-shortener#readme",
+  "description": "",
   "dependencies": {
-    "body-parser": "^1.20.2",
-    "cookie-parser": "^1.4.6",
-    "ejs": "^3.1.9",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.2",
-    "path": "^0.12.7",
-    "randomstring": "^1.3.0"
+    "@prisma/client": "^6.7.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.17",
+    "prisma": "^6.7.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
   }
 }
