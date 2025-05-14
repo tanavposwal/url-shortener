@@ -1,4 +1,3 @@
-import axios from "axios";
 import { redirect } from "next/navigation";
 
 export default async function Page({
@@ -7,8 +6,12 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const res = await axios.get(`http://localhost:3000/redirect/${slug}`);
-  const longUrl = res.data.long_url;
+  const res = await fetch(`http://localhost:3000/redirect/${slug}`, {
+    cache: "force-cache",
+  });
+  const data = await res.json();
+  console.log(data);
+  const longUrl = data.long_url;
 
   if (longUrl) {
     return redirect(longUrl);
