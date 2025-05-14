@@ -3,6 +3,7 @@ import Redis from "ioredis";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import { exists } from "fs";
 
 dotenv.config();
 
@@ -23,9 +24,17 @@ app.get("/", (req, res) => {
 });
 
 // super simple shorten endpoint
+//@ts-ignore
 app.post("/api/shorten", async (req, res) => {
   const longUrl = req.body.url;
   const title = req.body.title;
+
+  const exists = await db.url.findFirst({ where: { long_url: longUrl } });
+  if (exists) {
+    return res.json({
+      slug: exists.short_url,
+    });
+  }
 
   const chars =
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -52,7 +61,7 @@ app.post("/api/shorten", async (req, res) => {
     },
   });
 
-  res.send({
+  return res.json({
     slug,
   });
 });
@@ -72,13 +81,13 @@ app.get("/redirect/:slug", async (req, res) => {
   // cache layer with redis
   if (await redisClient.exists(`slug:${slug}`)) {
     const long_url = await redisClient.get(`slug:${slug}`);
-    // console.log("cache hit");
+    console.log("cache hit");
     return res.json({
       long_url,
     });
   }
 
-  // console.log("cache miss");
+  console.log("cache miss");
   const toUrl = await db.url.findUnique({
     where: {
       short_url: slug,
@@ -151,5 +160,4 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
 });

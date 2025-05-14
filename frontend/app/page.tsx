@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 import axios from "axios";
-import { Inter } from "next/font/google";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -34,11 +31,10 @@ export default function Home() {
   };
 
   return (
-    <div
-      className={`min-h-screen ${inter.className} bg-gray-50 w-full flex items-center justify-center`}>
-      <div className="max-w-2xl px-6">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900">URL Shortener</h1>
+    <div className="min-h-screen bg-gray-50 w-full flex items-center justify-center">
+      <div className="max-w-4xl w-full px-6">
+        <div className="mb-12 text-center">
+          <h1 className="text-5xl font-black text-gray-600">URL Shortener</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="flex gap-4 w-full">
@@ -47,13 +43,13 @@ export default function Home() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Enter your URL"
-            className="p-4 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:shadow-lg shadow-sm flex-1"
+            className="p-4 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:shadow-lg shadow-sm w-full"
           />
 
           <button
             type="submit"
             disabled={loading || !url}
-            className="px-8 py-4 bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors cursor-pointer shadow shadow-blue-400">
+            className="px-12 py-4 bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors cursor-pointer shadow shadow-blue-400 whitespace-nowrap select-none">
             Shorten
           </button>
         </form>
