@@ -3,11 +3,23 @@ import Redis from "ioredis";
 import express from "express";
 import dotenv from "dotenv";
 
-const app = express();
-app.use(express.json());
 dotenv.config();
 
-const client = new Redis(process.env.UPSTASH_REDIS_URL!);
+// Create a single Redis client instance
+export const redisClient = new Redis(process.env.UPSTASH_REDIS_URL!);
+
+const app = express();
+app.use(express.json());
+
+// Error handling for Redis connection
+redisClient.on("error", (err) => {
+  console.error("Redis connection error:", err);
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "healthy" });
+});
 
 app.get("/", (req, res) => {
   res.send("Ultra fast url shortner!");
@@ -53,16 +65,16 @@ app.get("/redirect/:slug", async (req, res) => {
   const { slug } = req.params;
 
   // increment count
-  if (await client.exists(`count:${slug}`)) {
-    await client.incr(`count:${slug}`);
+  if (await redisClient.exists(`count:${slug}`)) {
+    await redisClient.incr(`count:${slug}`);
   } else {
-    await client.set(`count:${slug}`, 0);
-    await client.expire(`count:${slug}`, 43200);
+    await redisClient.set(`count:${slug}`, 0);
+    await redisClient.expire(`count:${slug}`, 43200);
   }
 
   // cache layer with redis
-  if (await client.exists(`slug:${slug}`)) {
-    const long_url = await client.get(`slug:${slug}`);
+  if (await redisClient.exists(`slug:${slug}`)) {
+    const long_url = await redisClient.get(`slug:${slug}`);
     console.log("cache hit");
     return res.redirect(long_url!);
   }
@@ -78,8 +90,8 @@ app.get("/redirect/:slug", async (req, res) => {
     return res.status(404).send("URL not found");
   }
 
-  await client.set(`slug:${slug}`, toUrl.long_url!);
-  await client.expire(`slug:${slug}`, 43200);
+  await redisClient.set(`slug:${slug}`, toUrl.long_url!);
+  await redisClient.expire(`slug:${slug}`, 43200);
 
   return res.redirect(toUrl.long_url!);
 });
@@ -103,18 +115,20 @@ app.get("/analytics/:slug", async (req, res) => {
 });
 
 // cron job to dump counts to db
-// after every 10 minutes
-const DUMP_INTERVAL = 20 * 60 * 1000;
+// after every 40 minutes
+const DUMP_INTERVAL = 40 * 60 * 1000;
 setInterval(async () => {
   try {
-    const keys = await client.keys("count:*");
+    const keys = await redisClient.keys("count:*");
     for (const key of keys) {
       // key - slug
       // value - count in redis
-      const value = await client.get(key);
+      const value = await redisClient.get(key);
+      const slug = key.replace("count:", "");
+
       await db.url.update({
         where: {
-          short_url: key,
+          short_url: slug,
         },
         data: {
           count: {
@@ -122,10 +136,19 @@ setInterval(async () => {
           },
         },
       });
+
+      // Clear the counter in Redis after adding to DB
+      await redisClient.del(key);
     }
   } catch (error) {
     console.error("Error in count dump:", error);
   }
 }, DUMP_INTERVAL);
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+// Get port from environment variable or use default
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+});
