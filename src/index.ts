@@ -48,6 +48,7 @@ app.post("/api/shorten", async (req, res) => {
   });
 });
 
+//@ts-ignore
 app.get("/redirect/:slug", async (req, res) => {
   const { slug } = req.params;
 
@@ -62,19 +63,25 @@ app.get("/redirect/:slug", async (req, res) => {
   // cache layer with redis
   if (await client.exists(`slug:${slug}`)) {
     const long_url = await client.get(`slug:${slug}`);
-    res.redirect(long_url!);
+    console.log("cache hit");
+    return res.redirect(long_url!);
   }
 
+  console.log("cache miss");
   const toUrl = await db.url.findUnique({
     where: {
       short_url: slug,
     },
   });
 
-  await client.set(`slug:${slug}`, toUrl?.long_url!);
+  if (!toUrl) {
+    return res.status(404).send("URL not found");
+  }
+
+  await client.set(`slug:${slug}`, toUrl.long_url!);
   await client.expire(`slug:${slug}`, 43200);
 
-  res.redirect(toUrl?.long_url as string);
+  return res.redirect(toUrl.long_url!);
 });
 
 // all the details of a url
