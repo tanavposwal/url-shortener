@@ -1,12 +1,13 @@
 import db from "./db";
+import Redis from "ioredis";
 import express from "express";
-import redis from "redis";
+import dotenv from "dotenv";
 
 const app = express();
 app.use(express.json());
+dotenv.config();
 
-const client = redis.createClient();
-client.connect();
+const client = new Redis(process.env.UPSTASH_REDIS_URL!);
 
 app.get("/", (req, res) => {
   res.send("Ultra fast url shortner!");
@@ -52,24 +53,26 @@ app.get("/redirect/:slug", async (req, res) => {
 
   // increment count
   if (await client.exists(`count:${slug}`)) {
-    await client.incr(`count:${slug}`)
+    await client.incr(`count:${slug}`);
   } else {
-    await client.set(`count:${slug}`, 0, { EX: 43200 })
+    await client.set(`count:${slug}`, 0);
+    await client.expire(`count:${slug}`, 43200);
   }
 
   // cache layer with redis
   if (await client.exists(`slug:${slug}`)) {
-    const long_url = client.get(`slug:${slug}`);
-    res.redirect(long_url);
+    const long_url = await client.get(`slug:${slug}`);
+    res.redirect(long_url!);
   }
 
-  const toUrl = await db.url.findFirst({
+  const toUrl = await db.url.findUnique({
     where: {
       short_url: slug,
     },
   });
 
-  await client.set(`slug:${slug}`, toUrl?.long_url, { EX: 43200 });
+  await client.set(`slug:${slug}`, toUrl?.long_url!);
+  await client.expire(`slug:${slug}`, 43200);
 
   res.redirect(toUrl?.long_url as string);
 });
@@ -79,9 +82,9 @@ app.get("/analytics/:slug", async (req, res) => {
   const { slug } = req.params;
   const url = await db.url.findUnique({
     where: {
-      short_url: slug
-    }
-  })
+      short_url: slug,
+    },
+  });
   res.json({
     count: url?.count,
     title: url?.title,
@@ -89,12 +92,12 @@ app.get("/analytics/:slug", async (req, res) => {
     short_url: url?.short_url,
     long_url: url?.long_url,
     created_at: url?.created_at,
-  })
-})
+  });
+});
 
 // cron job to dump counts to db
 // after every 10 minutes
-const DUMP_INTERVAL = 20 * 60 * 1000
+const DUMP_INTERVAL = 20 * 60 * 1000;
 setInterval(async () => {
   try {
     const keys = await client.keys("count:*");
@@ -104,16 +107,18 @@ setInterval(async () => {
       const value = await client.get(key);
       await db.url.update({
         where: {
-          short_url: key
+          short_url: key,
         },
         data: {
           count: {
-            increment: value
-          }
-        }
-      })
+            increment: parseInt(value!),
+          },
+        },
+      });
     }
+  } catch (error) {
+    console.error("Error in count dump:", error);
   }
-}, DUMP_INTERVAL)
+}, DUMP_INTERVAL);
 
 app.listen(3000, () => console.log("Server running on port 3000"));
