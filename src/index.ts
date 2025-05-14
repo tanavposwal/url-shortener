@@ -12,6 +12,7 @@ app.get("/", (req, res) => {
   res.send("Ultra fast url shortner!");
 });
 
+// super simple shorten endpoint
 app.post("/api/shorten", async (req, res) => {
   const longUrl = req.body.url;
   const title = req.body.title;
@@ -49,6 +50,13 @@ app.post("/api/shorten", async (req, res) => {
 app.get("/redirect/:slug", async (req, res) => {
   const { slug } = req.params;
 
+  // increment count
+  if (await client.exists(`count:${slug}`)) {
+    await client.incr(`count:${slug}`)
+  } else {
+    await client.set(`count:${slug}`, 0, { EX: 43200 })
+  }
+
   // cache layer with redis
   if (await client.exists(`slug:${slug}`)) {
     const long_url = client.get(`slug:${slug}`);
@@ -65,5 +73,29 @@ app.get("/redirect/:slug", async (req, res) => {
 
   res.redirect(toUrl?.long_url as string);
 });
+
+// cron job to dump counts to db
+// after every 10 minutes
+const DUMP_INTERVAL = 20 * 60 * 1000
+setInterval(async () => {
+  try {
+    const keys = await client.keys("count:*");
+    for (const key of keys) {
+      // key - slug
+      // value - count in redis
+      const value = await client.get(key);
+      await db.url.update({
+        where: {
+          short_url: key
+        },
+        data: {
+          count: {
+            increment: value
+          }
+        }
+      })
+    }
+  }
+}, DUMP_INTERVAL)
 
 app.listen(3000, () => console.log("Server running on port 3000"));
