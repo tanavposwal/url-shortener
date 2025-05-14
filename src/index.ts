@@ -74,6 +74,24 @@ app.get("/redirect/:slug", async (req, res) => {
   res.redirect(toUrl?.long_url as string);
 });
 
+// all the details of a url
+app.get("/analytics/:slug", async (req, res) => {
+  const { slug } = req.params;
+  const url = await db.url.findUnique({
+    where: {
+      short_url: slug
+    }
+  })
+  res.json({
+    count: url?.count,
+    title: url?.title,
+    favicon: url?.favicon,
+    short_url: url?.short_url,
+    long_url: url?.long_url,
+    created_at: url?.created_at,
+  })
+})
+
 // cron job to dump counts to db
 // after every 10 minutes
 const DUMP_INTERVAL = 20 * 60 * 1000
