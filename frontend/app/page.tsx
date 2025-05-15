@@ -15,7 +15,7 @@ export default function Home() {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:3000/api/shorten", {
+      const response = await axios.post("/api/shorten", {
         url,
       });
       setShortUrl(response.data.slug);
@@ -27,14 +27,21 @@ export default function Home() {
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(shortUrl);
+    navigator.clipboard.writeText(process.env.FRONTEND_URL + "/" + shortUrl);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 w-full flex items-center justify-center">
       <div className="max-w-4xl w-full px-6">
-        <div className="mb-12 text-center">
-          <h1 className="text-5xl font-black text-gray-600">URL Shortener</h1>
+        <div className="mb-12 flex items-center justify-center w-full">
+          <div className="text-5xl font-black text-gray-600 flex select-none">
+            <span>B</span>
+            <img
+              src="https://emojicdn.elk.sh/⚡?style=apple"
+              className="w-12 -my-3"
+            />
+            <span>azingly Fast Shortener</span>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="flex gap-4 w-full">
@@ -54,6 +61,20 @@ export default function Home() {
           </button>
         </form>
 
+        <div className="w-full flex items-center justify-center mt-12 text-center text-gray-600 text-sm font-semibold select-none">
+          <span>made with</span>
+          <img
+            src="https://emojicdn.elk.sh/❤️?style=apple"
+            className="w-6 mx-2 hover:animate-bounce"
+          />
+          <span>
+            by{" "}
+            <a href="https://x.com/tanavindev" className="underline">
+              tanav
+            </a>
+          </span>
+        </div>
+
         {error && (
           <p className="mt-4 text-red-500 text-sm text-center">{error}</p>
         )}
@@ -67,7 +88,7 @@ export default function Home() {
               <input
                 type="text"
                 onChange={() => {}}
-                value={shortUrl}
+                value={"/" + shortUrl}
                 readOnly
                 className="flex-1 px-2 text-sm text-gray-600 outline-none font-mono"
               />

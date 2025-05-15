@@ -6,7 +6,7 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const res = await fetch(`http://localhost:3000/redirect/${slug}`, {
+  const res = await fetch(`/api/redirect/${slug}`, {
     cache: "force-cache",
   });
   const data = await res.json();
