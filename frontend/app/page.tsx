@@ -27,7 +27,7 @@ export default function Home() {
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(process.env.FRONTEND_URL + "/" + shortUrl);
+    navigator.clipboard.writeText(window.location.origin + "/" + shortUrl);
   };
 
   return (

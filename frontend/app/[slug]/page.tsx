@@ -1,20 +1,27 @@
 import { redirect } from "next/navigation";
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const res = await fetch(`/api/redirect/${slug}`, {
-    cache: "force-cache",
-  });
-  const data = await res.json();
-  console.log(data);
-  const longUrl = data.long_url;
+export default async function Page({ params }: { params: { slug: string } }) {
+  try {
+    const res = await fetch(
+      (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000") +
+        `/api/redirect/${params.slug}`,
+      {
+        cache: "force-cache",
+      }
+    );
 
-  if (longUrl) {
-    return redirect(longUrl);
+    const data = await res.json();
+
+    if (!data.long_url) {
+      throw new Error("URL not found");
+    }
+    const longUrl = data.long_url;
+
+    if (longUrl) {
+      return redirect(longUrl);
+    }
+  } catch (error) {
+    console.error("Error fetching URL:", error);
   }
 
   return (
