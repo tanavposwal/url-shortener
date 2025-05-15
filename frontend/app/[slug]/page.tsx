@@ -20,8 +20,7 @@ export default async function Page({
 }) {
   const { slug } = await params;
   const res = await fetch(
-    (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000") +
-      `/api/redirect/${slug}`,
+    process.env.NEXT_PUBLIC_BASE_URL + `/api/redirect/${slug}`,
     {
       cache: "force-cache",
     }
